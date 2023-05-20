@@ -1,10 +1,7 @@
 # TODO: Support selections that are not rectangular
 # TODO: Support non-8-bit color depth
+from PyQt5.QtWidgets import *
 from krita import *
-
-
-def show_message(message):
-    QMessageBox.information(QWidget(), "Layer finder", message)
 
 
 def node_affects(node, selection):
@@ -47,12 +44,24 @@ def node_affects(node, selection):
     return False
 
 
-class LayerFinderExtension(Extension):
-    def __init__(self, parent):
-        super().__init__(parent)
+class LayerFinderDocker(DockWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Layer finder")
 
-    def setup(self):
-        pass
+        self.label = QLabel("")
+
+        self.find_button = QPushButton("Find")
+        self.find_button.clicked.connect(self.run)
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.find_button)
+
+        self.widget = QWidget()
+        self.widget.setLayout(self.layout)
+
+        self.setWidget(self.widget)
 
     def createActions(self, window):
         action = window.createAction(
@@ -64,22 +73,52 @@ class LayerFinderExtension(Extension):
         document = Krita.instance().activeDocument()
 
         if document is None:
-            show_message("There is no active document")
+            self.show_message("There is no active document")
             return
 
         selection = document.selection()
 
-        self.recur(document.rootNode(), selection)
+        layers = self.find_layers(document.rootNode(), selection)
 
-    def recur(self, node, selection):
+        names = [self.track_parents(layer) for layer in layers]
+
+        if names:
+            self.show_message("Layers:\n" + "\n".join(names))
+        else:
+            self.show_message("No layers found")
+
+    def canvasChanged(self, canvas):
+        pass
+
+    def find_layers(self, node, selection):
+        layers = []
+
         children = node.childNodes()
 
         if children:
             for child in children:
-                self.recur(child, selection)
+                layers += self.find_layers(child, selection)
         else:
             if node_affects(node, selection):
-                show_message("Layer {} affects the selection".format(node.name()))
+                layers = [node]
+
+        return layers
+
+    def show_message(self, message):
+        self.label.setText(message)
+
+    def track_parents(self, node):
+        s = node.name()
+
+        while (
+            node.parentNode() and node != Krita.instance().activeDocument().rootNode()
+        ):
+            node = node.parentNode()
+            s = node.name() + " --> " + s
+
+        return s
 
 
-Krita.instance().addExtension(LayerFinderExtension(Krita.instance()))
+Krita.instance().addDockWidgetFactory(
+    DockWidgetFactory("layerfinder", DockWidgetFactoryBase.DockRight, LayerFinderDocker)
+)
