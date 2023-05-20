@@ -48,19 +48,17 @@ class ColorizingNodeChecker:
         self.node = node
         self.selection = selection
 
-    def is_colorizing(self):
-        return self.node_affects()
-
-    def node_affects(self):
         assert not self.node.childNodes()
 
-        if not self.node.visible():
-            return False
+    def is_colorizing(self):
+        return (
+            self.node.visible()
+            and self.node.opacity() != 0
+            and self.overlapping_region_has_opaque_pixels()
+        )
 
-        if self.node.opacity() == 0:
-            return False
-
-        overlapping = self.ovelapping_region()
+    def overlapping_region_has_opaque_pixels(self):
+        overlapping = self.overlapping_region()
 
         (ox, oy, ow, oh) = (
             overlapping.x(),
@@ -79,7 +77,7 @@ class ColorizingNodeChecker:
 
         return False
 
-    def ovelapping_region(self):
+    def overlapping_region(self):
         (sx, sy, sw, sh) = (
             self.selection.x(),
             self.selection.y(),
