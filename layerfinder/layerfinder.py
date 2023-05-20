@@ -4,44 +4,79 @@ from PyQt5.QtWidgets import *
 from krita import *
 
 
-def node_affects(node, selection):
-    assert not node.childNodes()
+def list_layers_colorizing_selection():
+    document = Krita.instance().activeDocument()
 
-    if not node.visible():
+    if document is None:
+        return []
+
+    selection = document.selection()
+
+    if selection is None:
+        return []
+
+    return LayerFinder(document, selection).find_layers()
+
+
+class LayerFinder:
+    def __init__(self, document, selection):
+        self.document = document
+        self.selection = selection
+
+        assert self.document is not None
+        assert self.selection is not None
+
+    def find_layers(self):
+        def recurse(node):
+            children = node.childNodes()
+
+            if children:
+                return [x for child in children for x in recurse(child)]
+            elif self.node_affects(node):
+                return [node]
+            else:
+                return []
+
+        return recurse(self.document.rootNode())
+
+    def node_affects(self, node):
+        assert not node.childNodes()
+
+        if not node.visible():
+            return False
+
+        if node.opacity() == 0:
+            return False
+
+        (sx, sy, sw, sh) = (
+            self.selection.x(),
+            self.selection.y(),
+            self.selection.width(),
+            self.selection.height(),
+        )
+
+        selectionRect = QRect(sx, sy, sw, sh)
+
+        rect = node.bounds()
+
+        overlappinf = rect.intersected(selectionRect)
+
+        (ox, oy, ow, oh) = (
+            overlappinf.x(),
+            overlappinf.y(),
+            overlappinf.width(),
+            overlappinf.height(),
+        )
+
+        bytes = node.pixelData(ox, oy, ow, oh)
+
+        for i in range(0, bytes.size(), 4):
+            chunk = tuple([ord(x) for x in bytes[i : i + 4]])
+
+            if chunk[3] != 0:
+                return True
+
         return False
-
-    if node.opacity() == 0:
-        return False
-
-    (sx, sy, sw, sh) = (
-        selection.x(),
-        selection.y(),
-        selection.width(),
-        selection.height(),
-    )
-
-    selectionRect = QRect(sx, sy, sw, sh)
-
-    rect = node.bounds()
-
-    overlappinf = rect.intersected(selectionRect)
-
-    (ox, oy, ow, oh) = (
-        overlappinf.x(),
-        overlappinf.y(),
-        overlappinf.width(),
-        overlappinf.height(),
-    )
-
-    bytes = node.pixelData(ox, oy, ow, oh)
-
-    for i in range(0, bytes.size(), 4):
-        chunk = tuple([ord(x) for x in bytes[i : i + 4]])
-
-        if chunk[3] != 0:
-            return True
-
-    return False
 
 
 class LayerFinderDocker(DockWidget):
@@ -78,7 +113,7 @@ class LayerFinderDocker(DockWidget):
 
         selection = document.selection()
 
-        layers = self.find_layers(document.rootNode(), selection)
+        layers = list_layers_colorizing_selection()
 
         names = [self.track_parents(layer) for layer in layers]
 
@@ -89,20 +124,6 @@ class LayerFinderDocker(DockWidget):
 
     def canvasChanged(self, canvas):
         pass
-
-    def find_layers(self, node, selection):
-        layers = []
-
-        children = node.childNodes()
-
-        if children:
-            for child in children:
-                layers += self.find_layers(child, selection)
-        else:
-            if node_affects(node, selection):
-                layers = [node]
-
-        return layers
 
     def show_message(self, message):
         self.label.setText(message)
