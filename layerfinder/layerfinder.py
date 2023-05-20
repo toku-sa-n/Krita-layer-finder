@@ -49,18 +49,18 @@ class ColorizingNodeChecker:
         self.selection = selection
 
     def is_colorizing(self):
-        return self.node_affects(self.node)
+        return self.node_affects()
 
-    def node_affects(self, node):
-        assert not node.childNodes()
+    def node_affects(self):
+        assert not self.node.childNodes()
 
-        if not node.visible():
+        if not self.node.visible():
             return False
 
-        if node.opacity() == 0:
+        if self.node.opacity() == 0:
             return False
 
-        overlapping = self.ovelapping_region(node)
+        overlapping = self.ovelapping_region()
 
         (ox, oy, ow, oh) = (
             overlapping.x(),
@@ -69,7 +69,7 @@ class ColorizingNodeChecker:
             overlapping.height(),
         )
 
-        bytes = node.pixelData(ox, oy, ow, oh)
+        bytes = self.node.pixelData(ox, oy, ow, oh)
 
         for i in range(0, bytes.size(), 4):
             chunk = tuple([ord(x) for x in bytes[i : i + 4]])
@@ -79,7 +79,7 @@ class ColorizingNodeChecker:
 
         return False
 
-    def ovelapping_region(self, node):
+    def ovelapping_region(self):
         (sx, sy, sw, sh) = (
             self.selection.x(),
             self.selection.y(),
@@ -89,7 +89,7 @@ class ColorizingNodeChecker:
 
         selectionRect = QRect(sx, sy, sw, sh)
 
-        rect = node.bounds()
+        rect = self.node.bounds()
 
         return rect.intersected(selectionRect)
 
