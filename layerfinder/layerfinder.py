@@ -48,24 +48,13 @@ class LayerFinder:
         if node.opacity() == 0:
             return False
 
-        (sx, sy, sw, sh) = (
-            self.selection.x(),
-            self.selection.y(),
-            self.selection.width(),
-            self.selection.height(),
-        )
-
-        selectionRect = QRect(sx, sy, sw, sh)
-
-        rect = node.bounds()
-
-        overlappinf = rect.intersected(selectionRect)
+        overlapping = self.ovelapping_region()
 
         (ox, oy, ow, oh) = (
-            overlappinf.x(),
-            overlappinf.y(),
-            overlappinf.width(),
-            overlappinf.height(),
+            overlapping.x(),
+            overlapping.y(),
+            overlapping.width(),
+            overlapping.height(),
         )
 
         bytes = node.pixelData(ox, oy, ow, oh)
@@ -77,6 +66,20 @@ class LayerFinder:
                 return True
 
         return False
+
+    def ovelapping_region(self):
+        (sx, sy, sw, sh) = (
+            self.selection.x(),
+            self.selection.y(),
+            self.selection.width(),
+            self.selection.height(),
+        )
+
+        selectionRect = QRect(sx, sy, sw, sh)
+
+        rect = node.bounds()
+
+        return rect.intersected(selectionRect)
 
 
 class LayerFinderDocker(DockWidget):
