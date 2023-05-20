@@ -131,7 +131,7 @@ class LayerFinderDocker(DockWidget):
         names = [self.track_parents(layer) for layer in layers]
 
         if names:
-            self.show_message("Layers:\n" + "\n".join(names))
+            self.show_message("\n".join(names))
         else:
             self.show_message("No layers found")
 
