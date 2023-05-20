@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=layerfinder
+X-Python-2-Compatible=false
+Name=Find layers colorizing the selection
+Name[ja]=選択範囲を色付けするレイヤーを探す
+Comment=Find layers colorizing the selection
+Comment[ja]=選択範囲を色付けするレイヤーを探す
