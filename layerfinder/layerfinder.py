@@ -129,6 +129,7 @@ class LayerFinderDocker(DockWidget):
         layers = list_layers_colorizing_selection()
 
         names = [self.track_parents(layer) for layer in layers]
+        names.reverse()
 
         if names:
             self.show_message("\n".join(names))
