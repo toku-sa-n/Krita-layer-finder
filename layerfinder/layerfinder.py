@@ -40,6 +40,18 @@ class LayerFinder:
         return recurse(self.document.rootNode())
 
     def node_affects(self, node):
+        return ColorizingNodeChecker(node, self.selection).is_colorizing()
+
+
+class ColorizingNodeChecker:
+    def __init__(self, node, selection):
+        self.node = node
+        self.selection = selection
+
+    def is_colorizing(self):
+        return self.node_affects(self.node)
+
+    def node_affects(self, node):
         assert not node.childNodes()
 
         if not node.visible():
@@ -48,7 +60,7 @@ class LayerFinder:
         if node.opacity() == 0:
             return False
 
-        overlapping = self.ovelapping_region()
+        overlapping = self.ovelapping_region(node)
 
         (ox, oy, ow, oh) = (
             overlapping.x(),
@@ -67,7 +79,7 @@ class LayerFinder:
 
         return False
 
-    def ovelapping_region(self):
+    def ovelapping_region(self, node):
         (sx, sy, sw, sh) = (
             self.selection.x(),
             self.selection.y(),
