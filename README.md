@@ -12,7 +12,7 @@ A docker to find layers that colorizes a part of or the full selection.
 ![Selection](images/selection.png)
 
 2. Press the `Find` button.
-3. The layers that colorizes the selection will be listed.
+3. The layers that colorize the selection will be listed.
 
 ![Result](images/docker.png)
 
