@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCollection version="2" name="Scripts">
+    <Actions category="Scripts">
+        <text>Layer finder</text>
+
+        <Action name="layerfinder">
+        <icon></icon>
+        <text>Find layers colorizing a part of or the full selection</text>
+        <whatsThis>Find layers colorizing the selection</whatsThis>
+        <toolTip>Find layers colorizing the selection and mark them with blue color labels</toolTip>
+        <iconText></iconText>
+        <activationFlags>100000000</activationFlags>
+        <activationConditions>1</activationConditions>
+        <shortcut>ctrl+f</shortcut>
+        <isCheckable>false</isCheckable>
+        <statusTip>Find layers colorizing the selection</statusTip>
+        </Action>
+    </Actions>
+</ActionCollection>

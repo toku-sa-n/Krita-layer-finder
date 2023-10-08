@@ -3,6 +3,35 @@
 from PyQt5.QtWidgets import *
 from krita import *
 
+NO_LABEL = 0
+BLUE_LABEL = 1
+
+
+def unset_all_blue_labels():
+    document = Krita.instance().activeDocument()
+
+    if document is None:
+        return
+
+    def recurse(node):
+        if node.colorLabel() == BLUE_LABEL:
+            node.setColorLabel(NO_LABEL)
+
+        children = node.childNodes()
+
+        if children:
+            for child in children:
+                recurse(child)
+
+    recurse(document.rootNode())
+
+
+def set_color_labels_recursively(node):
+    node.setColorLabel(BLUE_LABEL)
+
+    if node.parentNode() and node != Krita.instance().activeDocument().rootNode():
+        set_color_labels_recursively(node.parentNode())
+
 
 def list_layers_colorizing_selection():
     document = Krita.instance().activeDocument()
@@ -92,24 +121,12 @@ class ColorizingNodeChecker:
         return rect.intersected(selectionRect)
 
 
-class LayerFinderDocker(DockWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Layer finder")
+class LayerFinderExtension(Extension):
+    def __init__(self, parent):
+        super().__init__(parent)
 
-        self.label = QLabel("")
-
-        self.find_button = QPushButton("Find")
-        self.find_button.clicked.connect(self.run)
-
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.find_button)
-
-        self.widget = QWidget()
-        self.widget.setLayout(self.layout)
-
-        self.setWidget(self.widget)
+    def setup(self):
+        pass
 
     def createActions(self, window):
         action = window.createAction(
@@ -118,42 +135,21 @@ class LayerFinderDocker(DockWidget):
         action.triggered.connect(self.run)
 
     def run(self):
+        unset_all_blue_labels()
+
         document = Krita.instance().activeDocument()
 
         if document is None:
-            self.show_message("There is no active document")
             return
 
         selection = document.selection()
 
         layers = list_layers_colorizing_selection()
 
-        names = [self.track_parents(layer) for layer in layers]
-        names.reverse()
-
-        if names:
-            self.show_message("\n".join(names))
-        else:
-            self.show_message("No layers found")
+        [set_color_labels_recursively(layer) for layer in layers]
 
     def canvasChanged(self, canvas):
         pass
 
-    def show_message(self, message):
-        self.label.setText(message)
 
-    def track_parents(self, node):
-        s = node.name()
-
-        while (
-            node.parentNode() and node != Krita.instance().activeDocument().rootNode()
-        ):
-            node = node.parentNode()
-            s = node.name() + " --> " + s
-
-        return s
-
-
-Krita.instance().addDockWidgetFactory(
-    DockWidgetFactory("layerfinder", DockWidgetFactoryBase.DockRight, LayerFinderDocker)
-)
+Krita.instance().addExtension(LayerFinderExtension(Krita.instance()))
