@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import *
 from krita import *
 
 NO_LABEL = 0
-BLUE_LABEL = 1
+GREEN_LABEL = 2
 
 
 def unset_all_blue_labels():
@@ -14,7 +14,7 @@ def unset_all_blue_labels():
         return
 
     def recurse(node):
-        if node.colorLabel() == BLUE_LABEL:
+        if node.colorLabel() == GREEN_LABEL:
             node.setColorLabel(NO_LABEL)
 
         children = node.childNodes()
@@ -27,7 +27,7 @@ def unset_all_blue_labels():
 
 
 def set_color_labels_recursively(node):
-    node.setColorLabel(BLUE_LABEL)
+    node.setColorLabel(GREEN_LABEL)
 
     if node.parentNode() and node != Krita.instance().activeDocument().rootNode():
         set_color_labels_recursively(node.parentNode())
