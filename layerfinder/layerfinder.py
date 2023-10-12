@@ -59,9 +59,9 @@ class LayerFinder:
         def recurse(node):
             children = node.childNodes()
 
-            if children:
+            if children and node.visible():
                 return [x for child in children for x in recurse(child)]
-            elif self.node_affects(node):
+            elif not children and self.node_affects(node):
                 return [node]
             else:
                 return []
