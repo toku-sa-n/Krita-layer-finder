@@ -1,6 +1,6 @@
 # Krita-layer-finder
 
-A docker to find layers that colorizes a part of or the full selection.
+An extension to find layers that colorizes a part of or the full selection.
 
 ## Installation
 
